@@ -2,6 +2,7 @@ import RPi.GPIO as GPIO
 import time
 import glob
 import dht11
+import pigpio
 
 GPIO.setwarnings(False)
 #GPIO.setmode(GPIO.BCM) need to change!!!
@@ -10,18 +11,19 @@ base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')
 
 GPIO.setmode(GPIO.BOARD)
-In_Pin=35
+servo = 18
 
-GPIO.setup(In_Pin,GPIO.OUT,initial=GPIO.LOW)
-p=GPIO.PWM(In_Pin,50)
+pwm = pigpio.pi() 
+pwm.set_mode(servo, pigpio.OUTPUT)
+pwm.set_PWM_frequency( servo, 50 )
 
 def read_hum(instance):
-    result = instance.read()
-    if result.is_valid():
-        print("Temperature: %-3.1f C" % result.temperature)
-        print("Humidity: %-3.1f %%" % result.humidity)
-        time.sleep(2)
-        return(result.humidity)
+    while True:
+        result = instance.read()
+        if result.is_valid():
+            print("Temperature: %-3.1f C" % result.temperature)
+            print("Humidity: %-3.1f %%" % result.humidity)
+            return(result.humidity)
 
 def read_temp_raw(device_file):
     f = open(device_file, 'r')
@@ -41,29 +43,24 @@ def read_temp(device_file):
         temp_f = temp_c * 9.0 / 5.0 + 32.0
         return(temp_c, temp_f)
     
-def status_compare(temp_in,temp_out,humidity_out,humidity_max,temp_min,temp_pref):
+def status_compare(temp_in,temp_out,humidity_out,humidity_max,temp_min,temp_pref, cur_status):
     if humidity_out>humidity_max:
         cur_status=0
-        return (cur_status)
     if temp_in<temp_min:
         cur_status=0
-        return (cur_status)
     if temp_in-temp_out>temp_pref:
         cur_status=1
-        return (cur_status)
     if temp_in+temp_pref<temp_out:
         cur_status=0
-        return (cur_status)
-    
+    return(cur_status)
 
-p.start(0)
-p.ChangeDutyCycle(2.5)
+pwm.set_servo_pulsewidth( servo, 500 )
 post_status=0
 cur_status=0
 while True:
-    humidity_max=50%
-    temp_min=22
-    temp_pref=26
+    humidity_max=50
+    temp_min=20
+    temp_pref=0.1
 
     device_file = device_folder[0] + '/w1_slave'
     device_file_out = device_folder[1] + '/w1_slave'
@@ -75,22 +72,23 @@ while True:
     print(read_temp(device_file))
     print(read_temp(device_file_out))
 
-    instance_out=dht11.DHT11(pin=13)
-    instance_in=dht11.DHT11(pin=15)
+    instance_out=dht11.DHT11(pin=33)
+    instance_in=dht11.DHT11(pin=37)
     humidity_out=read_hum(instance_out)
     humidity_in=read_hum(instance_in)
+    print(humidity_out)
     
-    cur_status=status_compare(temp_in,temp_out,humidity_out,humidity_max,temp_min,temp_pref)
+    cur_status=status_compare(temp_in,temp_out,humidity_out,humidity_max,temp_min,temp_pref, cur_status)
 
     if cur_status!=post_status and cur_status==1:
         print("Change to Open")
         r=180
-        p.ChangeDutyCycle((2.5+r/360*20))
+        pwm.set_servo_pulsewidth( servo, 2500 )
         time.sleep(2)
     elif cur_status!=post_status and cur_status==0:
         print("Change to Close")
         r=90
-        p.ChangeDutyCycle((2.5+r/360*20))
+        pwm.set_servo_pulsewidth( servo, 1500 )
         time.sleep(2)
     else:
         time.sleep(2)
