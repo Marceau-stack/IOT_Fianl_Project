@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header_extends %}
+     <link rel="stylesheet" href="{% static 'css/preference_update.css' %}">
+{% endblock %}
+
+{% block page_title %}
+    Update Preference
+{% endblock %}
+
+{%block nav_preference_active %}
+    active
+{% endblock %}
+
+{% block content %}
+    <main>
+    <div class="col-md-12 col-lg-8">
+        <form action="" method="POST">
+            {% csrf_token %}
+            <h4>Temperature Settings</h4>
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <label for="{{ preference_form.temp_min.id_for_label }}">{{ preference_form.temp_min.label }} (&#8451;)</label>
+                    {{ preference_form.temp_min }}
+                </div>
+                <div class="col-sm-6">
+                    <label for="{{ preference_form.temp_max.id_for_label }}">{{ preference_form.temp_max.label }} (&#8451;)</label>
+                    {{ preference_form.temp_max }}
+                </div>
+                <div class="col-sm-6">
+                    <label for="{{ preference_form.diff_temp.id_for_label }}">{{ preference_form.diff_temp.label }} (&#8451;)</label>
+                    {{ preference_form.diff_temp }}
+                </div>
+            </div>
+            <hr class="my-4">
+
+            <h4>Humidity Settings</h4>
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <label for="{{ preference_form.diff_temp.id_for_label }}">{{ preference_form.diff_hum.label }} %</label>
+                    {{ preference_form.diff_hum }}
+                </div>
+            </div>
+            <div class="col-12">
+                <label for="{{ preference_form.close_when_rainy.id_for_label }}" class="form-check-label">{{ preference_form.close_when_rainy.label }}</label>
+                {% for choice in preference_form.close_when_rainy %}
+                    <div class="form-check form-check-inline">
+                        {{ choice.tag }}
+                        <label for="" class="form-check-label">{{ choice.choice_label }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="col-12">
+                <label for="{{ preference_form.close_when_dry.id_for_label }}" class="form-check-label">{{ preference_form.close_when_dry.label }}</label>
+                {% for choice in preference_form.close_when_dry %}
+                    <div class="form-check form-check-inline">
+                        {{ choice.tag }}
+                        <label for="" class="form-check-label">{{ choice.choice_label }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+            <hr class="my-4">
+
+            <h4>Wind Speed Settings</h4>
+            <label for="{{ preference_form.close_when_windy.id_for_label }}" class="form-check-label">{{ preference_form.close_when_windy.label }}</label>
+                {% for choice in preference_form.close_when_windy %}
+                    <div class="form-check form-check-inline">
+                        {{ choice.tag }}
+                        <label class="form-check-label">{{ choice.choice_label }}</label>
+                    </div>
+                {% endfor %}
+            <hr class="my-4">
+
+            <button class="w-100 btn btn-lg btn-dark" type="submit">Submit</button>
+        </form>
+    </div>
+
+    </main>
+
+{% endblock %}

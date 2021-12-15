@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header_extends %}
+     <link rel="stylesheet" href="{% static 'css/preference.css' %}">
+{% endblock %}
+
+{% block page_title %}
+    Preference
+{% endblock %}
+
+{%block nav_preference_active %}
+    active
+{% endblock %}
+
+{% block content %}
+    <main class="form-signin">
+        {% if user.is_authenticated %}
+            <h3>Preference</h3>
+            <ul class="list-group">
+                <li class="list-group-item"><b>Open window temperature range: </b>({{ min_temp }}, {{ max_temp }})</li>
+                <li class="list-group-item"><b>Temperature difference: </b>{{ diff_temp }}</li>
+                <li class="list-group-item"><b>Humidity difference: </b>{{ diff_hum }}</li>
+                <li class="list-group-item"><b>Close window when outsides is rainy: </b>{{ close_when_rainy }}</li>
+                <li class="list-group-item"><b>Close window when outsides is dry: </b>{{ close_when_dry }}</li>
+                <li class="list-group-item"><b>Close window when outside is windy: </b>{{ close_when_windy }}</li>
+            </ul>
+            <a href="{% url "preference_update" %}" class="w-100 btn btn-lg btn-dark">Change preference</a>
+        {% else %}
+            <h3>Please Sign in</h3>
+            <a href="{% url "login_voice" %}" class="w-100 btn btn-lg btn-dark">Sign in</a>
+        {% endif %}
+    </main>
+
+
+{% endblock %}

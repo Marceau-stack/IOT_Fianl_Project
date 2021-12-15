@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header_extends %}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block page_title %}
+    Home
+{% endblock %}
+
+{% block content %}
+    <h3 class="home-content">Welcome!</h3>
+    <h1>{{ message }}</h1>
+{% endblock %}

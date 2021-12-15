@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header_extends %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <link rel="stylesheet" href="{% static 'css/login_voice.css' %}">
+    <script src={% static "js/recorder.wav.min.js" %}></script>
+{% endblock %}
+
+{% block page_title %}
+    Login|Voice
+{% endblock %}
+
+{% block content %}
+    <main class="form-signin">
+        <form enctype="multipart/form-data" action="" method="POST">
+            <h4 id="title" class="mb-3 fw-normal">Sign in with your voice</h4>
+            {% csrf_token %}
+        </form>
+        <h6>Recording (please speak for at least 5s)</h6>
+        <button class="btn btn-dark" onclick="start(this);">Start</button>
+        <button class="btn btn-dark" onclick="stop(this);">Stop</button>
+        <ul id="recording_list"></ul>
+        <button class="w-100 btn btn-lg btn-dark" onclick="submit(this)">Sign in</button>
+        <a href="{% url "login_pwd" %}" style="padding-left: 5rem;">Sign in with password</a>
+    </main>
+{% endblock %}
+
+{% block script_extends %}
+    <script>
+        var wav_file;
+        var recorder;
+
+        var recOpen=function(success){
+            recorder=Recorder({
+                type:"wav",sampleRate:16000,bitRate:16
+                ,onProcess:function(buffers,powerLevel,bufferDuration,bufferSampleRate,newBufferIdx,asyncEnd){
+                }
+            });
+
+            recorder.open(function(){
+                recorder.start();
+                success&&success();
+            },function(msg,isUserNotAllow){
+                console.log((isUserNotAllow?"UserNotAllow，":"")+"cannot record:"+msg);
+            });
+        };
+
+        function start(button) {
+                recOpen();
+
+                button.disabled = true;
+                button.nextElementSibling.disabled = false;
+
+        }
+
+        function stop(button) {
+                recorder.stop(function(blob, duration) {
+                    wav_file = new File([blob], "recording.wav");
+
+                    var li = document.createElement('li');
+                    var url = URL.createObjectURL(blob);
+                    var au = document.createElement('audio');
+                    au.controls = true;
+                    au.src = url;
+                    li.appendChild(au);
+                    recording_list.innerHTML = li.innerHTML;
+                });
+                button.disabled = true;
+                button.previousElementSibling.disabled = false;
+                recorder.close();
+                recorder = null;
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function submit(button){
+            var form_data = new FormData;
+            form_data.append("recording", wav_file);
+            button.innerHTML = "Submitting";
+            button.disabled = true;
+            var request = new XMLHttpRequest();
+            request.open("POST", {% url "login_voice" %}, true);
+            request.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            request.send(form_data);
+            request.onload = function() {
+              console.log(request.responseURL);
+              window.location = request.responseURL;
+            };
+        }
+
+    </script>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header_extends %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <script src={% static "js/recorder.wav.min.js" %}></script>
+{% endblock %}
+
+{% block page_title %}
+    Sign up
+{% endblock %}
+
+{% block content %}
+    <main class="form-signin">
+        <form enctype="multipart/form-data" action="" method="POST">
+            <h1 id="title" class="h3 mb-3 fw-normal">Please sign up</h1>
+            {% csrf_token %}
+            {% for field in reg_form %}
+                {% if field.name != "recording" %}
+                    <div class="form-floating">
+                        {{ field }}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        <p class="text-danger">{{ field.errors.as_text }}</p>
+                    </div>
+                {% endif %}
+            {% endfor %}
+            <span class="text-danger">{{ reg_form.non_field_errors }}</span>
+        </form>
+        <h6>Recording (please count from 1 to 10)</h6>
+        <button class="btn btn-dark" onclick="start(this);">Start</button>
+        <button class="btn btn-dark" onclick="stop(this);">Stop</button>
+        <ul id="recording_list"></ul>
+        <button class="w-100 btn btn-lg btn-dark" onclick="submit(this)">Sign up</button>
+    </main>
+{% endblock %}
+
+{% block script_extends %}
+    <script>
+        var wav_file;
+        var recorder;
+
+        var recOpen=function(success){
+            recorder=Recorder({
+                type:"wav",sampleRate:16000,bitRate:16
+                ,onProcess:function(buffers,powerLevel,bufferDuration,bufferSampleRate,newBufferIdx,asyncEnd){
+                }
+            });
+
+            recorder.open(function(){
+                recorder.start();
+                success&&success();
+            },function(msg,isUserNotAllow){
+                console.log((isUserNotAllow?"UserNotAllow，":"")+"cannot record:"+msg);
+            });
+        };
+
+        function start(button) {
+                recOpen();
+
+                button.disabled = true;
+                button.nextElementSibling.disabled = false;
+
+        }
+
+        function stop(button) {
+                console.log("{{ request.path }}")
+                recorder.stop(function(blob, duration) {
+                    wav_file = new File([blob], "recording.wav");
+
+                    var li = document.createElement('li');
+                    var url = URL.createObjectURL(blob);
+                    var au = document.createElement('audio');
+                    au.controls = true;
+                    au.src = url;
+                    li.appendChild(au);
+                    recording_list.innerHTML = li.innerHTML;
+                });
+                button.disabled = true;
+                button.previousElementSibling.disabled = false;
+                recorder.close();
+                recorder = null;
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function submit(button){
+            var form_data = new FormData;
+            var username = document.getElementById("id_username");
+            var password = document.getElementById("id_password");
+            form_data.append("username", username.value);
+            form_data.append("password", password.value);
+            form_data.append("recording", wav_file);
+            button.innerHTML = "Enrolling...";
+            button.disabled = true;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", {% url "register" %}, true);
+            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            xhr.send(form_data);
+            xhr.onload = function() {
+              console.log(xhr.responseURL);
+              window.location = xhr.responseURL;
+            };
+        }
+
+    </script>
+{% endblock %}

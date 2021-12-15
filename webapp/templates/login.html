@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header_extends %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block page_title %}
+    Login|Passwd
+{% endblock %}
+
+{% block nav_home_active %}
+    active
+{% endblock %}
+
+{% block content %}
+    <main class="form-signin">
+        <form action="" method="POST">
+            <h1 id="title" class="h3 mb-3 fw-normal">Please sign in</h1>
+            {% csrf_token %}
+            {% for field in login_form %}
+                <div class="form-floating">
+                    {{ field }}
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    <p class="text-danger">{{ field.errors.as_text }}</p>
+                </div>
+            {% endfor %}
+            <span class="text-danger">{{ login_form.non_field_errors }}</span>
+            <button class="w-100 btn btn-lg btn-dark" type="submit">Sign in</button>
+        </form>
+    </main>
+{% endblock %}

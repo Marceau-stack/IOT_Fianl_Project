@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block nav_home_active %}
+    active
+{% endblock %}
+
+{% block header_extends %}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block page_title %}
+    Home
+{% endblock %}
+
+{% block content %}
+    <main class="form-signin">
+        {% if user.is_authenticated %}
+            <h3 class="home-content">Welcome, {{ user.username }}!</h3>
+            <form action="" method="POST">
+                {% csrf_token %}
+                {% for field in addr_form %}
+                    <div class="form-floating">
+                        {{ field }}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        <p class="text-danger">{{ field.errors.as_text }}</p>
+                    </div>
+                {% endfor %}
+                <button class="w-100 btn btn-lg btn-dark" type="submit">Take charge</button>
+            </form>
+        {% else %}
+            <h3 class="home-content">Welcome!</h3>
+            <a href="{% url "login_voice" %}" class="btn btn-dark btn-lg w-100">Sign in</a>
+            <a href="{% url "register" %}" class="btn btn-dark btn-lg w-100">Sign up</a>
+        {% endif %}
+    </main>
+
+{% endblock %}
