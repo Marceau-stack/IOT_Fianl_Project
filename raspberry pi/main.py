@@ -9,7 +9,7 @@ from datetime import datetime
 import requests
 
 
-base_url = ""
+base_url = "http://2f46-160-39-38-116.ngrok.io"
 port_from_server = 1234
 port_from_esp = 1235
 
@@ -58,7 +58,7 @@ def status_compare(weather, preference, cur_status):
     if abs(weather["hum_in"] - weather["hum_out"]) > preference.diff_hum:
         reason = "Balance indoor and outdoor humidities."
         cur_status = 1
-    if preference.temp_min <= weather["temp_in"] <= preference.temp_max:
+    if preference.temp_min <= weather["temp_out"] <= preference.temp_max:
         if abs(weather["temp_in"] - weather["temp_out"]) > preference.diff_temp:
             reason = "Balance indoor and outdoor temperatures."
             cur_status = 1
@@ -214,6 +214,7 @@ if __name__ == "__main__":
 
         else:
             information = conn_from_server.recv(4096).decode()
-            information = json.loads(information)
-            print(information)
-            preference.set(information)
+            if len(information) > 0:
+                information = json.loads(information)
+                print(information)
+                preference.set(information)
