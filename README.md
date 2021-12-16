@@ -1,4 +1,4 @@
-# IOT_Final_Project: Smart Personalized Window - Based on voiceprint recognition
+# IOT_Final_Project: Smart Personalized Window - With voiceprint recognition
 
 Description：
 ---
